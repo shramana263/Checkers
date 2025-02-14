@@ -53,7 +53,7 @@ function App() {
 
   const handleSquareClick = (row, col) => {
     const piece = board[row][col];
-    
+
     if (selectedPiece === null) {
       if (piece && piece.color === currentPlayer) {
         setSelectedPiece({ row, col });
@@ -64,10 +64,10 @@ function App() {
       if (move) {
         const newBoard = board.map(row => [...row]);
         const movedPiece = newBoard[selectedPiece.row][selectedPiece.col];
-        
+
         // Check for king promotion
-        const isKing = movedPiece.isKing || 
-          (movedPiece.color === 'red' && row === 0) || 
+        const isKing = movedPiece.isKing ||
+          (movedPiece.color === 'red' && row === 0) ||
           (movedPiece.color === 'black' && row === 7);
 
         newBoard[row][col] = {
@@ -94,7 +94,7 @@ function App() {
     }
   };
   const CrownIcon = () => (
-    <svg 
+    <svg
       className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-yellow-500"
       viewBox="0 0 24 24"
       fill="none"
@@ -109,8 +109,14 @@ function App() {
   );
 
   return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="grid grid-cols-8 gap-0">
+    <div className="flex flex-col justify-center items-center gap-3 h-screen checkers-background">
+      <div className='font-bold text-3xl flex justify-center items-center gap-5'><div>Turn :</div>
+        <div className={`relative h-12 w-12 rounded-full ${currentPlayer === 'red' ? 'bg-red-700' : 'bg-black'} shadow-[0_2px_5px_rgba(0,0,0,0.3)] `}>
+          <div className="absolute inset-0 rounded-full bg-white/20 mix-blend-overlay"></div>
+          <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
+        </div>
+      </div>
+      <div className="grid grid-cols-8 gap-0 border-8 border-gray-700 rounded-md">
         {board.map((row, rowIndex) =>
           row.map((square, colIndex) => {
             const isDarkSquare = (rowIndex + colIndex) % 2 === 1;
@@ -119,13 +125,13 @@ function App() {
             return (
               <div
                 key={`${rowIndex}-${colIndex}`}
-                className={`h-16 w-16 flex items-center justify-center ${isDarkSquare ? 'bg-gray-800' : 'bg-amber-100'} ${isSelected ? 'border-4 border-blue-500' : ''} ${isPossibleMove ? ' bg-green-500' : ''}`}
+                className={`h-16 w-16 hover:cursor-pointer flex items-center justify-center ${isDarkSquare ? 'bg-gray-800' : 'bg-amber-100'} ${isSelected ? 'border-4 border-blue-500' : ''} ${isPossibleMove ? ' bg-green-500' : ''}`}
                 onClick={() => handleSquareClick(rowIndex, colIndex)}
               >
                 {square && (
-                  <div className={`relative h-12 w-12 rounded-full ${square.color === 'red' ? 'bg-red-600' : 'bg-black'} ${square.isKing ? 'ring-2 ring-yellow-500' : ''} shadow-[0_2px_5px_rgba(0,0,0,0.3)]`}>
-                    <div className="absolute inset-0 rounded-full bg-white/10 mix-blend-overlay"></div>
-                    <div className="absolute inset-0 rounded-full border-2 border-white/20"></div>
+                  <div className={`relative h-12 w-12 rounded-full  ${square.color === 'red' ? 'bg-red-700' : 'bg-black'} ${square.isKing ? 'ring-2 ring-yellow-500' : ''} shadow-[0_2px_5px_rgba(0,0,0,0.3)]`}>
+                    <div className="absolute inset-0 rounded-full bg-white/20 mix-blend-overlay"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
                     {square.isKing && <CrownIcon />}
                   </div>)}
 
