@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Instruction from './components/Instruction';
 
 const initialBoard = Array(8).fill(null).map((_, row) =>
   Array(8).fill(null).map((_, col) => {
@@ -14,6 +15,8 @@ function App() {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState('red');
   const [possibleMoves, setPossibleMoves] = useState([]);
+  const [isInstructionOpen, setInstructionOpen] = useState(false);
+  const [gameStatus, setGameStatus] = useState(null);
 
   const getPossibleMoves = (row, col) => {
     const piece = board[row][col];
@@ -51,7 +54,44 @@ function App() {
     return moves;
   };
 
+  // const hasAnyValidMoves = (player) => {
+  //   let hasPieces = false;
+  //   let hasMoves = false;
+
+  //   for (let row = 0; row < 8; row++) {
+  //     for (let col = 0; col < 8; col++) {
+  //       const piece = board[row][col];
+  //       if (piece && piece.color === player) {
+  //         hasPieces = true;
+  //         const moves = getPossibleMoves(row, col);
+  //         if (moves.length > 0) {
+  //           hasMoves = true;
+  //           break;
+  //         }
+  //       }
+  //     }
+  //     if (hasMoves) break;
+  //   }
+
+  //   if (!hasPieces) return false;
+  //   return hasMoves;
+  // };
+
+  const checkGameOver = (nextPlayer, newBoard) => {
+    // if (!hasAnyValidMoves(nextPlayer)) {
+      // Check if the next player has any pieces left
+      const hasPieces = newBoard.flat().some(piece => piece && piece.color === nextPlayer);
+      console.log("haspieces: ",hasPieces);
+      if (!hasPieces) {
+        setGameStatus(currentPlayer); // Set the winner to the current player
+      }
+      console.log("gamestatus=", gameStatus);
+    // }
+  };
+
   const handleSquareClick = (row, col) => {
+    if (gameStatus) return;
+
     const piece = board[row][col];
 
     if (selectedPiece === null) {
@@ -81,9 +121,17 @@ function App() {
         }
 
         setBoard(newBoard);
-        setCurrentPlayer(currentPlayer === 'red' ? 'black' : 'red');
+        const nextPlayer = currentPlayer === 'red' ? 'black' : 'red';
+        setCurrentPlayer(nextPlayer);
         setSelectedPiece(null);
         setPossibleMoves([]);
+
+        // Check if the next player has any valid moves
+
+        console.log("nextplayer= ", nextPlayer);
+        console.log(board);
+        console.log("newBoard- ", newBoard);
+        checkGameOver(nextPlayer, newBoard);
       } else if (piece && piece.color === currentPlayer) {
         setSelectedPiece({ row, col });
         setPossibleMoves(getPossibleMoves(row, col));
@@ -93,6 +141,7 @@ function App() {
       }
     }
   };
+
   const CrownIcon = () => (
     <svg
       className="absolute top-[50%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-yellow-500"
@@ -110,7 +159,8 @@ function App() {
 
   return (
     <div className="flex flex-col justify-center items-center gap-3 h-screen checkers-background">
-      <div className='font-bold text-3xl flex justify-center items-center gap-5'><div>Turn :</div>
+      <div className='font-bold text-3xl flex justify-center items-center gap-5'>
+        <div>Turn :</div>
         <div className={`relative h-12 w-12 rounded-full ${currentPlayer === 'red' ? 'bg-red-700' : 'bg-black'} shadow-[0_2px_5px_rgba(0,0,0,0.3)] `}>
           <div className="absolute inset-0 rounded-full bg-white/20 mix-blend-overlay"></div>
           <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
@@ -133,13 +183,42 @@ function App() {
                     <div className="absolute inset-0 rounded-full bg-white/20 mix-blend-overlay"></div>
                     <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
                     {square.isKing && <CrownIcon />}
-                  </div>)}
-
+                  </div>
+                )}
               </div>
             );
           })
         )}
       </div>
+      <button
+        onClick={() => setInstructionOpen(true)}
+        className="fixed bottom-4 right-4 bg-green-700 hover:bg-green-800 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-2xl transition-all"
+      >
+        ?
+      </button>
+
+      <Instruction
+        isOpen={isInstructionOpen}
+        onClose={() => setInstructionOpen(false)}
+      />
+
+      {gameStatus!=null && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <div className="bg-white p-8 rounded-lg text-center">
+            <h2 className="text-2xl font-bold mb-4">{gameStatus} wins!</h2>
+            <button
+              onClick={() => {
+                setBoard(initialBoard);
+                setCurrentPlayer('red');
+                setGameStatus(null);
+              }}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              Play Again
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
