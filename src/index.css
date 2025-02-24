@@ -9,3 +9,9 @@
   /* height: 100vh; */
   overflow: hidden;
 }
+
+.landing-bg{
+  background-image: url('./assets/checkers_landing_bg.webp');
+  background-size: cover;
+  background-repeat: no-repeat;
+}

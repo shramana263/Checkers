@@ -17,9 +17,10 @@ function App() {
   const [possibleMoves, setPossibleMoves] = useState([]);
   const [isInstructionOpen, setInstructionOpen] = useState(false);
   const [gameStatus, setGameStatus] = useState(null);
+  const [deadlockMsg, setDeadlockMsg]= useState('');
 
-  const getPossibleMoves = (row, col) => {
-    const piece = board[row][col];
+  const getPossibleMoves = (row, col, currentBoard) => {
+    const piece = currentBoard[row][col];
     const moves = [];
     const directions = piece.isKing
       ? [[-1, -1], [-1, 1], [1, -1], [1, 1]]
@@ -31,7 +32,7 @@ function App() {
     directions.forEach(([dr, dc]) => {
       const newRow = row + dr;
       const newCol = col + dc;
-      if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8 && !board[newRow][newCol]) {
+      if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8 && !currentBoard[newRow][newCol]) {
         moves.push({ row: newRow, col: newCol });
       }
     });
@@ -44,8 +45,8 @@ function App() {
       const jumpCol = col + dc;
 
       if (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
-        const jumpPiece = board[jumpRow]?.[jumpCol];
-        if (jumpPiece && jumpPiece.color !== piece.color && !board[newRow][newCol]) {
+        const jumpPiece = currentBoard[jumpRow]?.[jumpCol];
+        if (jumpPiece && jumpPiece.color !== piece.color && !currentBoard[newRow][newCol]) {
           moves.push({ row: newRow, col: newCol, captured: { row: jumpRow, col: jumpCol } });
         }
       }
@@ -54,39 +55,34 @@ function App() {
     return moves;
   };
 
-  // const hasAnyValidMoves = (player) => {
-  //   let hasPieces = false;
-  //   let hasMoves = false;
-
-  //   for (let row = 0; row < 8; row++) {
-  //     for (let col = 0; col < 8; col++) {
-  //       const piece = board[row][col];
-  //       if (piece && piece.color === player) {
-  //         hasPieces = true;
-  //         const moves = getPossibleMoves(row, col);
-  //         if (moves.length > 0) {
-  //           hasMoves = true;
-  //           break;
-  //         }
-  //       }
-  //     }
-  //     if (hasMoves) break;
-  //   }
-
-  //   if (!hasPieces) return false;
-  //   return hasMoves;
-  // };
+  const hasAnyValidMoves = (player, currentBoard) => {
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = currentBoard[row][col];
+        if (piece && piece.color === player) {
+          const moves = getPossibleMoves(row, col, currentBoard);
+          if (moves.length > 0) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  };
 
   const checkGameOver = (nextPlayer, newBoard) => {
-    // if (!hasAnyValidMoves(nextPlayer)) {
-      // Check if the next player has any pieces left
-      const hasPieces = newBoard.flat().some(piece => piece && piece.color === nextPlayer);
-      console.log("haspieces: ",hasPieces);
-      if (!hasPieces) {
-        setGameStatus(currentPlayer); // Set the winner to the current player
-      }
-      console.log("gamestatus=", gameStatus);
-    // }
+    const hasPieces = newBoard.flat().some(piece => piece && piece.color === nextPlayer);
+    if (!hasPieces) {
+      setGameStatus(`${currentPlayer} Wins`);
+      return;
+    }
+    const hasMoves = hasAnyValidMoves(nextPlayer, newBoard);
+    if (!hasMoves && hasPieces) {
+      // setGameStatus(currentPlayer);
+      setDeadlockMsg('No More Possible Moves');
+      console.log('No More Possible Moves');
+      setGameStatus('Draw');
+    }
   };
 
   const handleSquareClick = (row, col) => {
@@ -97,7 +93,7 @@ function App() {
     if (selectedPiece === null) {
       if (piece && piece.color === currentPlayer) {
         setSelectedPiece({ row, col });
-        setPossibleMoves(getPossibleMoves(row, col));
+        setPossibleMoves(getPossibleMoves(row, col, board));
       }
     } else {
       const move = possibleMoves.find(m => m.row === row && m.col === col);
@@ -126,15 +122,10 @@ function App() {
         setSelectedPiece(null);
         setPossibleMoves([]);
 
-        // Check if the next player has any valid moves
-
-        console.log("nextplayer= ", nextPlayer);
-        console.log(board);
-        console.log("newBoard- ", newBoard);
         checkGameOver(nextPlayer, newBoard);
       } else if (piece && piece.color === currentPlayer) {
         setSelectedPiece({ row, col });
-        setPossibleMoves(getPossibleMoves(row, col));
+        setPossibleMoves(getPossibleMoves(row, col, board));
       } else {
         setSelectedPiece(null);
         setPossibleMoves([]);
@@ -162,7 +153,7 @@ function App() {
       <div className='font-bold text-3xl flex justify-center items-center gap-5'>
         <div>Turn :</div>
         <div className={`relative h-12 w-12 rounded-full ${currentPlayer === 'red' ? 'bg-red-700' : 'bg-black'} shadow-[0_2px_5px_rgba(0,0,0,0.3)] `}>
-          <div className="absolute inset-0 rounded-full bg-white/20 mix-blend-overlay"></div>
+          <div className="absolute inset-0 rounded -full bg-white/20 mix-blend-overlay"></div>
           <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
         </div>
       </div>
@@ -202,10 +193,10 @@ function App() {
         onClose={() => setInstructionOpen(false)}
       />
 
-      {gameStatus!=null && (
+      {gameStatus != null && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
           <div className="bg-white p-8 rounded-lg text-center">
-            <h2 className="text-2xl font-bold mb-4">{gameStatus} wins!</h2>
+            <h2 className="text-2xl font-bold mb-4">{gameStatus}</h2>
             <button
               onClick={() => {
                 setBoard(initialBoard);
