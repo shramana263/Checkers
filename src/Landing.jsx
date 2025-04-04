@@ -1,14 +1,21 @@
 import React from 'react';
-
+import { useNavigate } from 'react-router-dom';
+import Computer from './Computer';
+import App from './App';
 const Landing = () => {
+
+  const navigate= useNavigate();
+
   const handlePvP = () => {
     // Handle Player vs Player game start
     console.log('Starting Player vs Player game');
+    navigate('/app')
   };
 
   const handlePvC = () => {
     // Handle Player vs Computer game start
     console.log('Starting Player vs Computer game');
+    navigate('/computer')
   };
 
   return (
